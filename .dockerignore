@@ -1,0 +1,17 @@
+# ignore .git, IDE and build directories
+**/.git
+**/.idea/
+**/.iml
+
+# ignore build state dirs
+/dist/
+
+# sensitive test files
+.test-env*
+
+# project build files
+Dockerfile
+Makefile
+*.md
+*.*ignore*
+
