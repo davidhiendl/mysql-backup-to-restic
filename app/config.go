@@ -30,11 +30,13 @@ type Config struct {
 var DefaultConfig = Config{
 	LogLevel: logger.LOG_INFO,
 
-	S3Region:   "us-west-1",
-	S3Endpoint: "s3.us-west-1.amazonaws.com",
+	S3Region:     "us-west-1",
+	S3Endpoint:   "s3.us-west-1.amazonaws.com",
+	S3PathPrefix: "mysql-backup",
 
 	MySQLDumpBinary: "mysqldump",
 
+	MySQLUser: "root",
 	MySQLHost: "127.0.0.1",
 	MySQLPort: 3306,
 

@@ -35,7 +35,7 @@ func (app *App) dumpDatabaseMysqldump(dbName string) string {
 	// output file
 	outFile, err := os.Create(outPath)
 	if err != nil {
-		logger.Fatalf("failed to create command: %v", err)
+		logger.Fatalf("failed to create output file: %v", err)
 	}
 	defer outFile.Close()
 
