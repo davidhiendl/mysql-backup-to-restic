@@ -12,7 +12,6 @@ binary-name = mysql-backup-to-s3
 
 run:
 	source .test-env-export ; \
-	env | grep MYSQL; \
 	export GOPATH=$$GOPATH:$$(dirname $$(dirname $$(dirname $$(dirname $$PWD)))); \
 	echo "GOPATH=$${GOPATH}" ; \
 	go run main.go
