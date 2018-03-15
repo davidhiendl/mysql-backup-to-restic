@@ -1,14 +1,20 @@
-# Telegraf Docker Service Discovery
+# MySQL Backup to S3
+
+## WARNING: ALPHA QUALITY; MINIMAL TESTING; USE AT YOUR OWN RISK
 
 ## Description
-Create MySQL backups with `mysqldump`
+Create MySQL backups with `mysqldump` and store them to a S3-compatible
+storage. This allows for long-term, off-site and backup storage while
+eliminating the need for any self-hosted backup storage.
+
+Why `mysqldump`?: Because it is reliable and performance is acceptable. No point in re-inventing a backup tool.
 
 ## Docker Image
 **Using pre-built image:**
 ```bash
 docker run -ti \
     -e ...
-    dhswt/mysql-backup-to-s3:stable
+    dhswt/mysql-backup-to-s3:alpha
 ```
 
 **Building the image yourself:** \
@@ -18,15 +24,22 @@ docker build -t yourprefix/mysql-backup-to-s3:<tag>
 ```
 
 ## Configuration Variables
-| Variable             | Default                  | Description                                                                                 |
-| ---                  | ---                      | ---                                                                                         |
-| TSD_TEMPLATE_DIR     | /etc/telegraf/sd-tpl.d   | Where configurations templates are taken from                                               |
-| TSD_CONFIG_DIR       | /etc/telegraf/telegraf.d | Where configurations are written to, the telegraf config directory                          |
-| TSD_TAG_SWARM_LABELS | true                     | If docker swarm labels should be imported as tags. See `Container Detection > Swarm Labels` |
-| TSD_TAG_LABELS       | none                     | A list of comma separated labels that should be added as tags                               |
-| TSD_QUERY_INTERVAL   | 15                       | Interval in seconds between querying of the docker api for changes                          |
-
-
+| Variable              | Default                    | Description                                                                                                       |
+| ---                   | ---                        | ---                                                                                                               |
+| S3_ACCESS_KEY         |                            | S3 Access Key                                                                                                     |
+| S3_SECRET_KEY         |                            | S3 Secret Key                                                                                                     |
+| S3_ENDPOINT           | s3.us-west-1.amazonaws.com | The endpoint to use, also works with other s3 compatibile services like DigitalOcean spaces                       |
+| S3_REGION             | us-west-1                  | Region to use for S3                                                                                              |
+| S3_BUCKET             |                            | Bucket to use for backups                                                                                         |
+| S3_PATH_PREFIX        | mysql-backup               | A path prefix inside the bucket                                                                                   |
+| MYSQLDUMP_BINARY      | mysqldump                  | The location of the binary, if it is in path it should just work. Otherwise a full path may be required           |
+| MYSQL_USER            | root                       | MySQL User                                                                                                        |
+| MYSQL_PASS            |                            | MySQL Password                                                                                                    |
+| MYSQL_HOST            | localhost                  | MySQL Host (Warning: localhost will use unix:// socket, use 127.0.0.1 instead if localhost via tcp/ip is required |
+| MYSQL_PORT            | 3306                       | MySQL Port                                                                                                        |
+| EXPORT_TEMP_DIR       | /tmp                       | A temporary directory where exports are stored before they are uploaded to S3                                     |
+| SKIP_SYSTEM_DATABASES | true                       | If system databases (information_schema, performance_schema, mysql) should be skipped during backup               |
+| COMPRESS_WITH_GZ      | true                       | If the backup files should be compress with gz (will also add .gz extenion)                                       |
 
 ## Dependencies
 - GO >= 1.9
