@@ -1,0 +1,20 @@
+package: github.com/davidhiendl/mysql-backup-to-s3
+import:
+- package: github.com/JamesStewy/go-mysqldump
+  version: ^0.2.2
+- package: github.com/aws/aws-sdk-go
+  version: ^1.13.25
+  subpackages:
+  - aws
+  - aws/awsutil
+  - aws/credentials
+  - aws/session
+  - service/s3
+- package: github.com/fatih/structs
+  version: ^1.0.0
+- package: github.com/go-sql-driver/mysql
+  version: ^1.3.0
+- package: github.com/kelseyhightower/envconfig
+  version: ^1.3.0
+- package: github.com/sirupsen/logrus
+  version: ^1.0.5

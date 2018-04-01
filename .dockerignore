@@ -4,14 +4,14 @@
 **/.iml
 
 # ignore build state dirs
+/pkg/
+/build/
+/conf.test.d/
 /dist/
-
-# sensitive test files
-.test-env*
+/vendor/
 
 # project build files
 Dockerfile
-Makefile
 *.md
 *.*ignore*
 

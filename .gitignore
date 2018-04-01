@@ -1,6 +1,8 @@
 **/.idea/
 *.iml
+/conf.test.d/
+/pkg/
 /dist/
-
-# sensitive test files
+secrets.env
+/vendor
 .test-env*
