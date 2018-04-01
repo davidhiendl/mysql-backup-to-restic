@@ -6,12 +6,13 @@ import (
 )
 
 type Config struct {
-	S3AccessKey  string `envconfig:"S3_ACCESS_KEY"`
-	S3SecretKey  string `envconfig:"S3_SECRET_KEY"`
-	S3Endpoint   string `envconfig:"S3_ENDPOINT" default:"s3.us-west-1.amazonaws.com"`
-	S3Region     string `envconfig:"S3_REGION" default:"us-west-1"`
-	S3Bucket     string `envconfig:"S3_BUCKET"`
-	S3PathPrefix string `envconfig:"S3_PATH_PREFIX" default:""`
+	S3AccessKey      string `envconfig:"S3_ACCESS_KEY"`
+	S3SecretKey      string `envconfig:"S3_SECRET_KEY"`
+	S3Endpoint       string `envconfig:"S3_ENDPOINT" default:"s3.us-west-1.amazonaws.com"`
+	S3Region         string `envconfig:"S3_REGION" default:"us-west-1"`
+	S3Bucket         string `envconfig:"S3_BUCKET"`
+	S3PathPrefix     string `envconfig:"S3_PATH_PREFIX" default:""`
+	S3ForcePathStyle bool   `envconfig:"S3_FORCE_PATH_STYLE" default:"true"`
 
 	MySQLDumpBinary string `envconfig:"MYSQLDUMP_BINARY" default:"mysqldump"`
 

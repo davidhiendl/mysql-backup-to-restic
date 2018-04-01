@@ -21,7 +21,12 @@ func (app *App) connectToS3() {
 		logrus.Fatalf("failed to configure s3 credentials: %v \n", err)
 	}
 
-	conf := aws.NewConfig().WithRegion(app.config.S3Region).WithEndpoint(app.config.S3Endpoint).WithCredentials(creds)
+	conf := aws.NewConfig()
+	conf.WithRegion(app.config.S3Region)
+	conf.WithEndpoint(app.config.S3Endpoint)
+	conf.WithCredentials(creds)
+	conf.WithS3ForcePathStyle(app.config.S3ForcePathStyle)
+
 	svc := s3.New(session.New(), conf)
 	app.s3svc = svc
 }
