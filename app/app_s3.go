@@ -5,11 +5,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/davidhiendl/mysql-backup-to-s3/app/logger"
 	"os"
 	"bytes"
 	"net/http"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/sirupsen/logrus"
 )
 
 func (app *App) connectToS3() {
@@ -18,7 +18,7 @@ func (app *App) connectToS3() {
 	creds := credentials.NewStaticCredentials(app.config.S3AccessKey, app.config.S3SecretKey, token)
 	_, err := creds.Get()
 	if err != nil {
-		logger.Fatalf("failed to configure s3 credentials: %v \n", err)
+		logrus.Fatalf("failed to configure s3 credentials: %v \n", err)
 	}
 
 	conf := aws.NewConfig().WithRegion(app.config.S3Region).WithEndpoint(app.config.S3Endpoint).WithCredentials(creds)
@@ -29,7 +29,7 @@ func (app *App) connectToS3() {
 func (app *App) storeFile(localPath string, s3Path string) {
 	file, err := os.Open(localPath)
 	if err != nil {
-		logger.Fatalf("err opening file: %s", err)
+		logrus.Fatalf("err opening file: %s", err)
 	}
 	defer file.Close()
 	fileInfo, _ := file.Stat()
@@ -48,7 +48,7 @@ func (app *App) storeFile(localPath string, s3Path string) {
 
 	resp, err := app.s3svc.PutObject(params)
 	if err != nil {
-		logger.Fatalf("bad response: %s", err)
+		logrus.Fatalf("bad response: %s", err)
 	}
-	logger.Infof("stored file %v to %v, response: ", localPath, s3Path, awsutil.StringValue(resp))
+	logrus.Infof("stored file %v to %v, response: ", localPath, s3Path, awsutil.StringValue(resp))
 }

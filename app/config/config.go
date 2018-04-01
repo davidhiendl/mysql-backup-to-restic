@@ -1,8 +1,8 @@
-package app
+package config
 
 import (
 	"github.com/kelseyhightower/envconfig"
-	"github.com/davidhiendl/mysql-backup-to-s3/app/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -24,12 +24,11 @@ type Config struct {
 	SkipSystemDatabases bool   `envconfig:"SKIP_SYSTEM_DATABASES"`
 	CompressWithGz      bool   `envconfig:"COMPRESS_WITH_GZ"`
 
-	LogLevel int `envconfig:"LOG_LEVEL"`
+	LogLevel string `envconfig:"LOG_LEVEL"`
 }
 
 var DefaultConfig = Config{
-	LogLevel: logger.LOG_INFO,
-
+	LogLevel:     "info",
 	S3Region:     "us-west-1",
 	S3Endpoint:   "s3.us-west-1.amazonaws.com",
 	S3PathPrefix: "mysql-backup",
@@ -45,13 +44,20 @@ var DefaultConfig = Config{
 	CompressWithGz:      true,
 }
 
-// Create new config and populate it from environment
-func NewConfig() (*Config) {
+func Load() *Config {
 	c := DefaultConfig
-	return &c
-}
 
-func (c *Config) LoadFromEnv() error {
 	err := envconfig.Process("", c)
-	return err
+	if err != nil {
+		logrus.Panicf("failed to parse log level, %+v", err)
+	}
+
+	// set log level
+	level, err := logrus.ParseLevel(c.LogLevel)
+	if err != nil {
+		logrus.Panicf("failed to parse log level, %+v", err)
+	}
+	logrus.SetLevel(level)
+
+	return &c
 }

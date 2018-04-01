@@ -3,18 +3,19 @@ package app
 import (
 	"database/sql"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/davidhiendl/mysql-backup-to-s3/app/logger"
 	"os"
+	"github.com/sirupsen/logrus"
+	"github.com/davidhiendl/mysql-backup-to-s3/app/config"
 )
 
 type App struct {
-	config *Config
+	config *config.Config
 	db     *sql.DB
 	s3svc  *s3.S3
 }
 
 // Create new config and populate it from environment
-func NewApp(config *Config) (*App) {
+func NewApp(config *config.Config) (*App) {
 	app := App{
 		config: config,
 	}
@@ -31,7 +32,7 @@ func (app *App) Run() {
 
 	for _, db := range databases {
 		if app.shouldSkipDb(db) {
-			logger.Infof("skipping db: %v", db)
+			logrus.Infof("skipping db: %v", db)
 			continue
 		}
 
