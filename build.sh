@@ -32,8 +32,7 @@ function exec-glide {
 
 function test-run {
     set-gopath
-   	source .test-env-export
-   	go run main.go
+   	eval $(egrep -v '^#' .test-env | xargs) go run main.go
 }
 
 function image {
