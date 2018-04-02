@@ -32,6 +32,7 @@ docker build -t yourprefix/mysql-backup-to-s3:<tag>
 | S3_REGION             | us-west-1                  | Region to use for S3                                                                                              |
 | S3_BUCKET             |                            | Bucket to use for backups                                                                                         |
 | S3_PATH_PREFIX        | mysql-backup               | A path prefix inside the bucket                                                                                   |
+| S3_FORCE_PATH_STYLE   | true                       | Force S3 URLs to use bucket as folder inside of subdomain (more compatible with minio and similar solutions       |
 | MYSQLDUMP_BINARY      | mysqldump                  | The location of the binary, if it is in path it should just work. Otherwise a full path may be required           |
 | MYSQL_USER            | root                       | MySQL User                                                                                                        |
 | MYSQL_PASS            |                            | MySQL Password                                                                                                    |
