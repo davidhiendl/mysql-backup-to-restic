@@ -11,6 +11,7 @@
 /vendor/
 
 # project build files
+build.sh
 Dockerfile
 *.md
 *.*ignore*

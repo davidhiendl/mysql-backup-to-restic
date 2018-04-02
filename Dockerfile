@@ -1,23 +1,20 @@
 # build binary first
 FROM    golang:1.9.4-alpine3.7
 
-WORKDIR /go/src/github.com/davidhiendl/mysql-backup-to-s3
-
-# install upx to compress binary
+# install tools
 RUN     apk add --no-cache \
+            glide \
             git \
-            mercurial \
-            upx \
-            curl \
+            upx
 
-# install go dep
-&&      curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+# add glide config and install dependencies with glide in a separate step to speed up subsequent builds
+WORKDIR /go/src/github.com/davidhiendl/mysql-backup-to-s3
+ADD     glide.lock glide.yaml /go/src/github.com/davidhiendl/mysql-backup-to-s3/
+RUN     glide install
 
-# add sources
+# add source and build package
 ADD     . /go/src/github.com/davidhiendl/mysql-backup-to-s3/
-
-# fetch remaining dependencies and build package
-RUN     dep ensure \
+RUN     glide install \
 &&      go build -i \
             -o /mysql-backup-to-s3 \
             -ldflags="-s -w" \
@@ -32,7 +29,13 @@ LABEL   maintainer="David Hiendl <david.hiendl@dhswt.de>"
 
 RUN     apk add --no-cache \
             mariadb-client \
-            ca-certificates
+            ca-certificates \
+&&      rm /usr/bin/myisam_ftdump \
+&&      rm /usr/bin/mysql_waitpid \
+&&      rm /usr/bin/mysqladmin \
+&&      rm /usr/bin/mysqlcheck \
+&&      rm /usr/bin/mysqlimport \
+&&      rm /usr/bin/mysqlshow
 
 # add binary from previous stage
 COPY    --from=0 /mysql-backup-to-s3 /

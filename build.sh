@@ -35,14 +35,32 @@ function test-run {
    	eval $(egrep -v '^#' .test-env | xargs) go run main.go
 }
 
+function test-run-docker {
+    set-gopath
+    image dev
+    docker run \
+        -ti \
+        --net=host \
+        --env-file=./.test-env \
+        ${DOCKER_REPO}:dev
+}
+
 function image {
-    echo "Building ${DOCKER_REPO} image, this might take a long time..."; \
-	docker build --squash -t $DOCKER_REPO:dev .
+    TAG=${1:-dev}
+    echo "Building ${DOCKER_REPO}:${TAG} image, this might take a long time..."; \
+	docker build --squash -t $DOCKER_REPO:${TAG} .
 }
 
 function push-dev {
-    echo "Pushing ${DOCKER_REPO} image, this might take a long time..."; \
+    image
+    echo "Pushing ${DOCKER_REPO}:dev image, this might take a long time..."; \
 	docker push $DOCKER_REPO:dev
+}
+
+function push-master {
+    image master
+    echo "Pushing ${DOCKER_REPO}:master image, this might take a long time..."; \
+	docker push $DOCKER_REPO:master
 }
 
 case "$1" in
@@ -70,8 +88,16 @@ case "$1" in
         push-dev "${@:2}"
         ;;
 
+    push-master)
+        push-master "${@:2}"
+        ;;
+
     test-run)
         test-run "${@:2}"
+        ;;
+
+    test-run-docker)
+        test-run-docker "${@:2}"
         ;;
 
     *)
