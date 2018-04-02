@@ -17,12 +17,12 @@ func (app *App) connectToDb(name string) *sql.DB {
 			name))
 
 	if err != nil {
-		logrus.Fatalf("failed to configure database: %v \n", err)
+		logrus.Fatalf("failed to configure database:%v ", err)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		logrus.Fatalf("failed to connect to database: %v \n", err)
+		logrus.Fatalf("failed to connect to database:%v ", err)
 	}
 
 	return db
@@ -37,22 +37,22 @@ func (app *App) getDatabases() []string {
 
 	rows, err := app.db.Query("show databases")
 	if err != nil {
-		logrus.Fatalf("failed to query databases: %v \n", err)
+		logrus.Fatalf("failed to query databases: %v", err)
 	}
 
 	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&name)
 		if err != nil {
-			logrus.Fatalf("failed to fetch row: %v \n", err)
+			logrus.Fatalf("failed to fetch row: %v", err)
 		}
-		logrus.Infof("listed db: %v \n", name)
+		logrus.Infof("found database: %v", name)
 		databaseList = append(databaseList, name)
 	}
 
 	err = rows.Err()
 	if err != nil {
-		logrus.Fatalf("failed to fetch rows: %v \n", err)
+		logrus.Fatalf("failed to fetch rows: %v", err)
 	}
 
 	return databaseList
