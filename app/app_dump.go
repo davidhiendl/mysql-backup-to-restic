@@ -9,11 +9,12 @@ import (
 	"compress/gzip"
 	"os"
 	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 func (app *App) getDumpTime() string {
 	t := time.Now()
-	return t.Format("2006-01-02_15-04-05-9999") + t.Format("Z07:00")
+	return t.Format("2006-01-02_15-04-05") + strings.Replace(t.Format("Z07:00"), ":", "-", -1)
 }
 
 func (app *App) dumpDatabaseMysqldump(dbName string) string {
