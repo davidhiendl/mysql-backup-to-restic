@@ -2,26 +2,28 @@ package app
 
 import (
 	"database/sql"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/davidhiendl/mysql-backup-to-restic/app/config"
+	"github.com/davidhiendl/mysql-backup-to-restic/app/restic"
 	"os"
-	"github.com/sirupsen/logrus"
-	"github.com/davidhiendl/mysql-backup-to-s3/app/config"
+	"path/filepath"
 )
 
 type App struct {
-	config *config.Config
-	db     *sql.DB
-	s3svc  *s3.S3
+	config  *config.Config
+	db      *sql.DB
+	restic  *restic.Restic
+	dumpDir string
 }
 
 // Create new config and populate it from environment
 func NewApp(config *config.Config) (*App) {
 	app := App{
-		config: config,
+		config:  config,
+		dumpDir: filepath.Join(config.Common.ScratchDir, "sqldumps"),
 	}
 
 	app.db = app.connectToDb("")
-	app.connectToS3()
+	app.restic = restic.New(config)
 
 	return &app
 }
@@ -30,42 +32,64 @@ func NewApp(config *config.Config) (*App) {
 func (app *App) Run() {
 	databases := app.getDatabases()
 
-	for _, db := range databases {
-		if app.shouldSkipDb(db) {
-			logrus.Infof("skipping db: %v", db)
+	dumpedFiles := make([]string, 0)
+
+	// export databases
+	for db, ok := range databases {
+		if !ok {
 			continue
 		}
 
-		// TODO improve workflow to skip temporary disk storage of backup files
-
-		// determine paths
+		// execute dump
 		dumpFile := app.dumpDatabaseMysqldump(db)
-		s3Path := app.config.S3PathPrefix + "/" + db + "/" + app.getDumpTime() + ".sql"
-
-		// append extension if gz compression is configured
-		if app.config.CompressWithGz {
-			s3Path += ".gz"
-		}
-
-		// store file to s3
-		app.storeFile(dumpFile, s3Path)
-
-		// cleanup file from local storage
-		os.Remove(dumpFile)
+		dumpedFiles = append(dumpedFiles, dumpFile)
 	}
 
+	// run restic
+	app.restic.InitRepositoryIfAbsent()
+	app.restic.Backup(app.dumpDir, nil);
+	if (app.config.RetentionPolicy.HasKeepDirective()) {
+		app.restic.Forget(&app.config.RetentionPolicy)
+
+		if (app.config.RetentionPolicy.Check) {
+			app.restic.Check()
+		}
+	}
+
+	// clean up
+	for _, file := range dumpedFiles {
+		os.Remove(file)
+	}
 }
 
-func (app *App) shouldSkipDb(name string) bool {
-	if app.config.SkipSystemDatabases {
+func (app *App) ShouldIncludeDatabase(name string) (bool, string) {
+	// exclude system
+	if app.config.Databases.ExcludeSystem {
 		if name == "performance_schema" || name == "information_schema" || name == "mysql" {
-			return true
+			return false, "system database excluded"
 		}
 	}
 
-	// TODO skip by regex
+	// exclude specific list
+	for _, exclude := range app.config.Databases.Exclude {
+		if name == exclude {
+			return false, "on exclude list"
+		}
+	}
 
-	return false
+	// if include list enabled
+	if len(app.config.Databases.Include) > 0 {
+		for _, include := range app.config.Databases.Include {
+			if name == include {
+				return true, "on include list"
+			}
+		}
+
+		// only allow databases that are included
+		return false, "not on include list"
+	}
+
+	return true, "not on any list"
 }
 
 func (app *App) Close() {

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-DOCKER_REPO=dhswt/mysql-backup-to-s3
+DOCKER_REPO=dhswt/mysql-backup-to-restic
 BINARY_PATH=./dist
-BINARY_NAME=mysql-backup-to-s3
+BINARY_NAME=mysql-backup-to-restic
 BINARY_TARGET="${BINARY_PATH}/${BINARY_NAME}"
 
 function build {
@@ -41,7 +41,7 @@ function test-run-docker {
     docker run \
         -ti \
         --net=host \
-        --env-file=./.test-env \
+        -v $(pwd)/conf.test.d/config.yaml:/var/run/secrets/config.yaml \
         ${DOCKER_REPO}:dev
 }
 
@@ -76,7 +76,7 @@ case "$1" in
         package-deb "${@:2}"
         ;;
 
-    exec-glide)
+    glide)
         exec-glide "${@:2}"
         ;;
 
@@ -101,6 +101,6 @@ case "$1" in
         ;;
 
     *)
-        echo $"Usage: $0 {build|build-dev|package-dev|exec-glide|image|test-run}"
+        echo $"Usage: $0 {build|build-dev|package-dev|glide|image|test-run}"
         exit 1
 esac

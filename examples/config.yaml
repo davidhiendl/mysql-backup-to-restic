@@ -1,0 +1,25 @@
+mysql:
+    host: 127.0.0.1
+    port: 3306
+    username: backup
+    password: YourPassword
+databases:
+  include: # can also omit to include all files
+  - some_db_a
+  - some_db_b
+restic:
+  password: YourResticPassword
+  backends:
+    s3:
+      accessKeyID: YourS3AccessKeyID
+      secretAccessKey: YourS3SecretAccessKey
+      endpoint: YourCustomS3Endpoint
+      bucket: YourBucketName
+      path: YourPathPrefix
+retentionPolicy:
+  keepLast: 5
+  keepDays: 7
+  keepWeeks: 4
+  keepMonths: 6
+  keepTags:
+  - keep

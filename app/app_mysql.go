@@ -10,10 +10,10 @@ import (
 func (app *App) connectToDb(name string) *sql.DB {
 	db, err := sql.Open("mysql",
 		fmt.Sprintf("%v:%v@tcp(%v:%v)/%v",
-			app.config.MySQLUser,
-			app.config.MySQLPass,
-			app.config.MySQLHost,
-			app.config.MySQLPort,
+			app.config.MySQL.Username,
+			app.config.MySQL.Password,
+			app.config.MySQL.Host,
+			app.config.MySQL.Port,
 			name))
 
 	if err != nil {
@@ -28,8 +28,8 @@ func (app *App) connectToDb(name string) *sql.DB {
 	return db
 }
 
-func (app *App) getDatabases() []string {
-	var databaseList []string
+func (app *App) getDatabases() map[string]bool {
+	databaseList := make(map[string]bool, 0)
 
 	var (
 		name string
@@ -43,11 +43,20 @@ func (app *App) getDatabases() []string {
 	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&name)
+
 		if err != nil {
 			logrus.Fatalf("failed to fetch row: %v", err)
 		}
-		logrus.Infof("found database: %v", name)
-		databaseList = append(databaseList, name)
+
+		shouldInclude, reason := app.ShouldIncludeDatabase(name)
+
+		logrus.WithFields(logrus.Fields{
+			"database": name,
+			"include": shouldInclude,
+			"reason": reason,
+		}).Info("found database")
+
+		databaseList[name] = shouldInclude
 	}
 
 	err = rows.Err()
@@ -57,5 +66,3 @@ func (app *App) getDatabases() []string {
 
 	return databaseList
 }
-
-

@@ -4,33 +4,36 @@ import (
 	"os/exec"
 	"io/ioutil"
 	"strconv"
-	"github.com/JamesStewy/go-mysqldump"
-	"time"
 	"compress/gzip"
 	"os"
 	"github.com/sirupsen/logrus"
-	"strings"
+	"path/filepath"
 )
 
-func (app *App) getDumpTime() string {
-	t := time.Now()
-	return t.Format("2006-01-02_15-04-05") + strings.Replace(t.Format("Z07:00"), ":", "-", -1)
-}
+const (
+	MYSQLDUMP_BINARY = "mysqldump"
+)
 
 func (app *App) dumpDatabaseMysqldump(dbName string) string {
-	outPath := app.config.ExportTempDir + "/" + dbName + ".sql"
+
+	err := os.MkdirAll(app.dumpDir, 0750)
+	if err != nil {
+		logrus.Fatalf("failed to create dump dir: %v, error: %+v", app.dumpDir, err)
+	}
+
+	outPath := filepath.Join(app.dumpDir, dbName+".sql")
 
 	// append extension if gz compression is configured
-	if app.config.CompressWithGz {
+	if app.config.Dump.CompressWithGz {
 		outPath += ".gz"
 	}
 
 	logrus.Infof("dumping database: %v to file: %v \n", dbName, outPath)
 
 	// find binary
-	binary, err := exec.LookPath(app.config.MySQLDumpBinary)
+	binary, err := exec.LookPath(MYSQLDUMP_BINARY)
 	if err != nil {
-		logrus.Fatalf("failed to find binary: %v, err: %v \n", app.config.MySQLDumpBinary, err)
+		logrus.Fatalf("failed to find mysqldump binary: %v, err: %v \n", MYSQLDUMP_BINARY, err)
 	}
 
 	// output file
@@ -41,10 +44,10 @@ func (app *App) dumpDatabaseMysqldump(dbName string) string {
 	defer outFile.Close()
 
 	// create command
-	cmd := exec.Command(binary, "-P"+strconv.Itoa(app.config.MySQLPort), "-h"+app.config.MySQLHost, "-u"+app.config.MySQLUser, "-p"+app.config.MySQLPass, dbName)
+	cmd := exec.Command(binary, "-P"+strconv.Itoa(app.config.MySQL.Port), "-h"+app.config.MySQL.Host, "-u"+app.config.MySQL.Username, "-p"+app.config.MySQL.Password, dbName)
 
 	// use gz compression if configured
-	if app.config.CompressWithGz {
+	if app.config.Dump.CompressWithGz {
 		// create gzWriter
 		gzWriter := gzip.NewWriter(outFile)
 		defer gzWriter.Flush()
@@ -75,25 +78,4 @@ func (app *App) dumpDatabaseMysqldump(dbName string) string {
 	println("mysqldump: " + string(stderrorBytes))
 
 	return outPath
-}
-
-func (app *App) dumpDatabaseInGo(dbName string) string {
-	logrus.Infof("dumping db %v", dbName)
-
-	db := app.connectToDb(dbName)
-
-	// Register database with mysqldump
-	dumper, err := mysqldump.Register(db, app.config.ExportTempDir, time.ANSIC)
-	if err != nil {
-		logrus.Fatalf("error registering db for dumb: %v \n", err)
-	}
-
-	outFile, err := dumper.Dump()
-	if err != nil {
-		logrus.Fatalf("error dumping db for dumb: %v \n", err)
-	}
-
-	logrus.Infof("dumped db %v to %v", dbName, outFile)
-
-	return outFile
 }

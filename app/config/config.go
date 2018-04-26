@@ -1,47 +1,38 @@
 package config
 
-import (
-	"github.com/kelseyhightower/envconfig"
-	"github.com/sirupsen/logrus"
-)
-
 type Config struct {
-	S3AccessKey      string `envconfig:"S3_ACCESS_KEY"`
-	S3SecretKey      string `envconfig:"S3_SECRET_KEY"`
-	S3Endpoint       string `envconfig:"S3_ENDPOINT" default:"s3.us-west-1.amazonaws.com"`
-	S3Region         string `envconfig:"S3_REGION" default:"us-west-1"`
-	S3Bucket         string `envconfig:"S3_BUCKET"`
-	S3PathPrefix     string `envconfig:"S3_PATH_PREFIX" default:""`
-	S3ForcePathStyle bool   `envconfig:"S3_FORCE_PATH_STYLE" default:"true"`
-
-	MySQLDumpBinary string `envconfig:"MYSQLDUMP_BINARY" default:"mysqldump"`
-
-	MySQLUser string `envconfig:"MYSQL_USER" default:"root"`
-	MySQLPass string `envconfig:"MYSQL_PASS"`
-	MySQLHost string `envconfig:"MYSQL_HOST" default:"127.0.0.1"`
-	MySQLPort int    `envconfig:"MYSQL_PORT" default:"3306"`
-
-	ExportTempDir       string `envconfig:"EXPORT_TEMP_DIR" default:"/tmp"`
-	SkipSystemDatabases bool   `envconfig:"SKIP_SYSTEM_DATABASES" default:"true"`
-	CompressWithGz      bool   `envconfig:"COMPRESS_WITH_GZ" default:"true"`
-
-	LogLevel string `envconfig:"LOG_LEVEL" default:"info"`
+	Common          Common          `yaml:"common"`
+	MySQL           MySQL           `yaml:"mysql"`
+	Dump            Dump            `yaml:"dump"`
+	Databases       Databases       `yaml:"databases"`
+	Restic          Restic          `yaml:"restic"`
+	RetentionPolicy RetentionPolicy `yaml:"retentionPolicy"`
 }
 
-func Load() *Config {
-	c := Config{}
+type Common struct {
+	ScratchDir string `yaml:"scratchDir,omitempty"`
+}
 
-	err := envconfig.Process("", &c)
-	if err != nil {
-		logrus.Panicf("failed to parse log level, %+v", err)
-	}
+type MySQL struct {
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
+	Host     string `yaml:"host,omitempty"`
+	Port     int    `yaml:"port,omitempty"`
+}
 
-	// set log level
-	level, err := logrus.ParseLevel(c.LogLevel)
-	if err != nil {
-		logrus.Panicf("failed to parse log level, %+v", err)
-	}
-	logrus.SetLevel(level)
+type Dump struct {
+	CompressWithGz bool `yaml:"compressWithGz,omitempty"`
+}
 
-	return &c
+type Databases struct {
+	ExcludeSystem bool     `yaml:"excludeSystem,omitempty"`
+	Exclude       []string `yaml:"exclude,omitempty"`
+	Include       []string `yaml:"include,omitempty"`
+}
+
+type Restic struct {
+	Hostname    string         `yaml:"hostname,omitempty"`
+	Password    string         `yaml:"password,omitempty"`
+	Backends    ResticBackends `yaml:"backends,omitempty"`
+	CacheEnable bool           `yaml:"cacheEnable,omitempty"`
 }
