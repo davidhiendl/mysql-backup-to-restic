@@ -1,3 +1,5 @@
+# Moved to GitLab: https://gitlab.com/davidhiendl/mysql-backup-to-restic
+
 # MySQL Backup to Restic
 
 ## WARNING: ALPHA QUALITY; MINIMAL TESTING; USE AT YOUR OWN RISK
